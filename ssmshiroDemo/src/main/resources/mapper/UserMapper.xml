@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aaa.ssmshiro.dao.UserDao">
+    <select id="login" resultType="com.aaa.ssmshiro.entity.User">
+        select u.username,u.password,r.roleid as roleid,concat(u.username,u.password_salt) as salt from users u
+        join user_role r on u.id=r.userid where u.username=#{username}
+    </select>
+
+    <select id="selectRole" parameterType="String" resultType="String">
+        SELECT r.role FROM roles r
+        where r.id=(select z.roleId FROM users u
+                    join user_role z on u.id=z.userId
+                    where u.username=#{username})
+    </select>
+
+    <select id="selectPermission" parameterType="String" resultType="String">
+        select p.permission from permissions p
+        join role_permisssion x on  p.id=x.permissionId
+        where x.roleId=(select z.roleId FROM users u
+                    join user_role z on u.id=z.userId
+                    where u.username=#{username})
+    </select>
+</mapper>

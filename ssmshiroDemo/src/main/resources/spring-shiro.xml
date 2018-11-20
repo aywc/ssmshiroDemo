@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+    <!-- 配置 ShiroFilter bean: 该 bean 的 id 必须和 web.xml 文件中配置的 shiro filter 的 name 一致  -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!-- 装配 securityManager:shiro核心安全接口，这个属性是必须的-->
+        <property name="securityManager" ref="securityManager"/>
+        <!-- 配置登陆页面 非必须，若没有指定shiro会在web工程下寻找indexjsp页面-->
+        <property name="loginUrl" value="/toLogin"/>
+        <!-- 登陆成功后的页面 -->
+        <property name="successUrl" value="/success.jsp"/>
+        <!--用户访问未对其授权的页面时所跳转的页面-->
+        <property name="unauthorizedUrl" value="WEB-INF/file/500.jsp"/>
+        <!--代表需要完成的shiro过滤器的具体配置-->
+
+        <!-- 具体配置需要拦截哪些 URL, 以及访问对应的 URL 时使用 Shiro 的什么 Filter 进行拦截.
+            不同的filter有不同的拦截级别
+            anon：不需要登入
+            authc：必须需要登入
+            应用
+            /**=authc,都必须登入才能访问
+         -->
+        <property name="filterChainDefinitions">
+            <value>
+                /WEB-INF/index.jsp=anon
+                /WEB-INF/*.jsp=anon
+                /login=anon
+                /toLogin=anon
+                /**=authc
+            </value>
+        </property>
+    </bean>
+
+    <!-- 配置 Shiro 的 SecurityManager Bean. -->
+    <!--配置安全管理器-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!--引入缓存管理器-->
+        <property name="cacheManager" ref="cacheManager"/>
+        <!-- 目标realm的实现-->
+        <property name="realm" ref="myRealm"/>
+        <!-- <property name="sessionMode" value="native"/>-->
+    </bean>
+
+    <!-- 配置缓存管理器 -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <!-- 指定 ehcache 的配置文件 -->
+        <property name="cacheManagerConfigFile" value="classpath:ehcache-shiro.xml"/>
+    </bean>
+
+    <!-- 配置进行授权和认证的 Realm -->
+    <bean id="myRealm" class="com.aaa.ssmshiro.realm.MyRealm">
+        <property name="credentialsMatcher">
+            <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                <!-- 加密算法为MD5 -->
+                <property name="hashAlgorithmName" value="MD5"></property>
+                <!-- 加密次数 -->
+                <property name="hashIterations" value="2"></property>
+            </bean>
+        </property>
+
+    </bean>
+
+    <!-- 配置 Bean 后置处理器: 会自动的调用和 Spring 整合后各个组件的生命周期方法. -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+</beans>
